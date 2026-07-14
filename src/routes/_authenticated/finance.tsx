@@ -128,7 +128,7 @@ function PortfolioFinance({ data }: { data: Overview }) {
       <PageHeader
         title="Finance overview"
         description={`Portfolio-wide financials across ${portfolio.properties} propert${portfolio.properties === 1 ? "y" : "ies"}.`}
-        actions={<Link to="/finance/upload"><Button size="sm"><Upload className="h-4 w-4 mr-2" /> Upload data</Button></Link>}
+        actions={<div className="flex gap-2"><Link to="/finance/rent-advisor"><Button size="sm" variant="outline"><TrendingUp className="h-4 w-4 mr-2" /> Rent advisor</Button></Link><Link to="/finance/upload"><Button size="sm"><Upload className="h-4 w-4 mr-2" /> Upload data</Button></Link></div>}
       />
 
       {!portfolio.hasFinancialData && (
