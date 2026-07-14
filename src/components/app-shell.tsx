@@ -1,13 +1,14 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { getMe } from "@/lib/rpm.functions";
-import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, ShieldCheck, LogOut, PlusCircle, History } from "lucide-react";
+import { getMe, setDemoRole } from "@/lib/rpm.functions";
+import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, LogOut, PlusCircle, History } from "lucide-react";
 import logoAsset from "@/assets/c-street-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 
