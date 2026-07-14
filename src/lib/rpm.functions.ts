@@ -198,10 +198,16 @@ export const decideApproval = createServerFn({ method: "POST" })
       additional_estimate_requested: "additional_estimate_requested",
       question: "owner_question",
     } as const;
-    const patch: Record<string, unknown> = { status: statusMap[data.decision] };
-    if (data.decision === "approved") patch.approved_amount = appr.recommended_amount;
-
-    await context.supabase.from("maintenance_requests").update(patch).eq("id", appr.request_id);
+    const newStatus = statusMap[data.decision];
+    if (data.decision === "approved") {
+      await context.supabase.from("maintenance_requests")
+        .update({ status: newStatus, approved_amount: appr.recommended_amount })
+        .eq("id", appr.request_id);
+    } else {
+      await context.supabase.from("maintenance_requests")
+        .update({ status: newStatus })
+        .eq("id", appr.request_id);
+    }
     return { ok: true };
   });
 
