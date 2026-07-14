@@ -29,7 +29,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: "/onboarding", replace: true });
     });
   }, [navigate]);
 
@@ -39,8 +39,8 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Signed in");
-    navigate({ to: "/dashboard", replace: true });
+    toast.success("Signed in — pick a demo role");
+    navigate({ to: "/onboarding", replace: true });
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -61,7 +61,7 @@ function AuthPage() {
       return;
     }
     toast.success("Account created");
-    navigate({ to: "/dashboard", replace: true });
+    navigate({ to: "/onboarding", replace: true });
   }
 
   async function handleGoogle() {
