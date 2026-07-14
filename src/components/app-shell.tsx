@@ -93,7 +93,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
           <img src={logoAsset.url} alt="C Street Property Management" className="h-10 w-10 rounded object-cover" />
           <div className="leading-tight">
-            <div className="text-sm font-semibold tracking-wide">C Street</div>
+            <div className="text-sm font-semibold tracking-wide">C Street Management Group</div>
             <div className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/60">Property Management</div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="h-14 flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <img src={logoAsset.url} alt="C Street" className="h-8 w-8 rounded object-cover" />
-              <span className="font-semibold text-sm tracking-wide">C Street</span>
+              <span className="font-semibold text-sm tracking-wide">C Street Management Group</span>
             </div>
             <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
           </div>

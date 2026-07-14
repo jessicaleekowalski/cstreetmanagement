@@ -14,7 +14,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — C Street Management Group" },
-      { name: "description", content: "Sign in to C Street Management commercial property maintenance." },
+      { name: "description", content: "Sign in to C Street Management Group commercial property maintenance." },
     ],
   }),
   component: AuthPage,
