@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, TriangleAlert, FileText, Clock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — C Street Management" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — C Street Management Group" }] }),
   component: DashboardPage,
 });
 

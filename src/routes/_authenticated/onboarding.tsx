@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/rpm-ui";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
-  head: () => ({ meta: [{ title: "Choose your role — C Street Management" }] }),
+  head: () => ({ meta: [{ title: "Choose your role — C Street Management Group" }] }),
   component: OnboardingPage,
 });
 
