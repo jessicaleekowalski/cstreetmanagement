@@ -673,19 +673,25 @@ export const clearFinancialData = createServerFn({ method: "POST" })
     property_id: z.string().uuid().optional(),
   }).parse(raw))
   .handler(async ({ data, context }) => {
-    const table = {
-      financials: "property_financials",
-      budgets: "property_budgets",
-      transactions: "gl_transactions",
-      valuations: "property_valuations",
-    }[data.kind];
-    let q = context.supabase.from(table).delete();
-    if (data.property_id) q = q.eq("property_id", data.property_id);
-    else q = q.not("id", "is", null);
-    const { error } = await q;
-    if (error) throw new Error(error.message);
+    const s = context.supabase;
+    const del = (t:
+      | ReturnType<typeof s.from<"property_financials">>
+      | ReturnType<typeof s.from<"property_budgets">>
+      | ReturnType<typeof s.from<"gl_transactions">>
+      | ReturnType<typeof s.from<"property_valuations">>) => {
+      let q = t.delete();
+      if (data.property_id) q = q.eq("property_id", data.property_id);
+      else q = q.not("id", "is", null);
+      return q;
+    };
+    const res = data.kind === "financials" ? await del(s.from("property_financials"))
+      : data.kind === "budgets" ? await del(s.from("property_budgets"))
+      : data.kind === "transactions" ? await del(s.from("gl_transactions"))
+      : await del(s.from("property_valuations"));
+    if (res.error) throw new Error(res.error.message);
     return { ok: true };
   });
+
 
 
 export const listNotifications = createServerFn({ method: "GET" })
