@@ -13,8 +13,8 @@ import logoAsset from "@/assets/c-street-logo.png.asset.json";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — C Street Management" },
-      { name: "description", content: "Sign in to C Street Management commercial property maintenance." },
+      { title: "Sign in — C Street Management Group" },
+      { name: "description", content: "Sign in to C Street Management Group commercial property maintenance." },
     ],
   }),
   component: AuthPage,

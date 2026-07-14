@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Download, Upload, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/finance_/upload")({
-  head: () => ({ meta: [{ title: "Upload financial data — C Street" }] }),
+  head: () => ({ meta: [{ title: "Upload financial data — C Street Management Group" }] }),
   component: UploadPage,
 });
 

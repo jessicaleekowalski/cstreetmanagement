@@ -5,7 +5,7 @@ import { listVendors } from "@/lib/rpm.functions";
 import { PageHeader } from "@/components/rpm-ui";
 
 export const Route = createFileRoute("/_authenticated/vendors")({
-  head: () => ({ meta: [{ title: "Vendors — C Street Management" }] }),
+  head: () => ({ meta: [{ title: "Vendors — C Street Management Group" }] }),
   component: VendorsPage,
 });
 

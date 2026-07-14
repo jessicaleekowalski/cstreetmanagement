@@ -14,7 +14,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/finance")({
-  head: () => ({ meta: [{ title: "Finance — C Street Management" }] }),
+  head: () => ({ meta: [{ title: "Finance — C Street Management Group" }] }),
   validateSearch: zodValidator(searchSchema),
   component: FinancePage,
 });

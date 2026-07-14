@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Bell } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
-  head: () => ({ meta: [{ title: "Notifications — C Street Management" }] }),
+  head: () => ({ meta: [{ title: "Notifications — C Street Management Group" }] }),
   component: NotificationsPage,
 });
 function NotificationsPage() {
