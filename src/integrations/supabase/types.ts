@@ -1214,25 +1214,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      current_org_id: { Args: never; Returns: string }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_admin: { Args: never; Returns: boolean }
-      is_manager: { Args: never; Returns: boolean }
-      user_can_see_request: { Args: { _request_id: string }; Returns: boolean }
-      user_manages_property: {
-        Args: { _property_id: string }
-        Returns: boolean
-      }
-      user_owner_entity_ids: { Args: { _user_id: string }; Returns: string[] }
-      user_owns_property: { Args: { _property_id: string }; Returns: boolean }
-      user_tenant_company_ids: { Args: { _user_id: string }; Returns: string[] }
-      user_tenant_suite_ids: { Args: { _user_id: string }; Returns: string[] }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "property_manager" | "owner" | "tenant"
