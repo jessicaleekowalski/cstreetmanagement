@@ -8,7 +8,14 @@ export function PushToggle({ compact }: { compact?: boolean }) {
   const { status, busy, enable, disable } = usePushNotifications();
 
   if (!status.supported) {
-    return compact ? null : (
+    if (compact) {
+      return (
+        <Button size="sm" variant="ghost" disabled aria-label={status.reason} title={status.reason}>
+          <BellOff className="h-4 w-4 opacity-60" />
+        </Button>
+      );
+    }
+    return (
       <div className="text-[10px] text-sidebar-foreground/50 px-1 leading-snug">
         {status.reason}
       </div>
