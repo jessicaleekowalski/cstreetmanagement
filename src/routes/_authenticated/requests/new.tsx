@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { useEffect, useState, useMemo } from "react";
 
 export const Route = createFileRoute("/_authenticated/requests/new")({
-  head: () => ({ meta: [{ title: "New maintenance request — Cape Fear Ops" }] }),
+  head: () => ({ meta: [{ title: "New maintenance request — C Street Management" }] }),
   component: NewRequestPage,
 });
 
