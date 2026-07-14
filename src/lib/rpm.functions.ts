@@ -48,33 +48,34 @@ export const setDemoRole = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { role } = data;
+    // Demo bootstrap: role assignment requires admin privileges (user_roles is admin-only).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Reset: remove existing roles + membership rows so the user can flip roles cleanly.
-    await supabase.from("user_roles").delete().eq("user_id", userId);
-    await supabase.from("property_manager_assignments").delete().eq("manager_user_id", userId);
-    await supabase.from("owner_entity_users").delete().eq("user_id", userId);
-    await supabase.from("tenant_users").delete().eq("user_id", userId);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+    await supabaseAdmin.from("property_manager_assignments").delete().eq("manager_user_id", userId);
+    await supabaseAdmin.from("owner_entity_users").delete().eq("user_id", userId);
+    await supabaseAdmin.from("tenant_users").delete().eq("user_id", userId);
 
-    // Make sure profile → org is set
+    // Make sure profile → org is set (caller can update their own profile)
     await supabase.from("profiles").update({ organization_id: ORG_ID }).eq("id", userId);
 
-    // Insert new role
-    const { error: roleErr } = await supabase
+    // Insert new role via admin (RLS locks user_roles to admins only)
+    const { error: roleErr } = await supabaseAdmin
       .from("user_roles")
       .insert({ user_id: userId, organization_id: ORG_ID, role });
     if (roleErr) throw new Error(roleErr.message);
 
-    // Wire memberships based on role. All writes use the caller's client;
-    // policies allow the caller since role was just granted.
+    // Wire memberships based on role. Use admin client so writes aren't blocked by RLS.
     if (role === "property_manager" || role === "admin") {
       const rows = PROPERTY_IDS.map(pid => ({ property_id: pid, manager_user_id: userId }));
-      await supabase.from("property_manager_assignments").insert(rows);
+      await supabaseAdmin.from("property_manager_assignments").insert(rows);
     }
     if (role === "owner") {
-      await supabase.from("owner_entity_users").insert({ owner_entity_id: OWNER_ENTITY_ID, user_id: userId });
+      await supabaseAdmin.from("owner_entity_users").insert({ owner_entity_id: OWNER_ENTITY_ID, user_id: userId });
     }
     if (role === "tenant") {
-      await supabase.from("tenant_users").insert({
+      await supabaseAdmin.from("tenant_users").insert({
         tenant_company_id: OWNER_TENANT_COMPANY_ID,
         user_id: userId,
         is_primary_contact: true,
