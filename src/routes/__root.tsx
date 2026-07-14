@@ -70,9 +70,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cape Fear Ops — Commercial Property Maintenance" },
+      { title: "C Street Management — Commercial Property Maintenance" },
       { name: "description", content: "Commercial property maintenance operations: tenant requests, owner approvals, vendor coordination, and repair history." },
-      { property: "og:title", content: "Cape Fear Ops — Commercial Property Maintenance" },
+      { property: "og:title", content: "C Street Management — Commercial Property Maintenance" },
       { property: "og:description", content: "Commercial property maintenance operations: tenant requests, owner approvals, vendor coordination." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

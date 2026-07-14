@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Building2 className="h-4 w-4" />
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold">Cape Fear Ops</div>
+            <div className="text-sm font-semibold">C Street Management</div>
             <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Commercial Maintenance</div>
           </div>
         </div>
@@ -108,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Building2 className="h-3.5 w-3.5" />
             </div>
-            <span className="font-semibold text-sm">Cape Fear Ops</span>
+            <span className="font-semibold text-sm">C Street Management</span>
           </div>
           <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
         </header>

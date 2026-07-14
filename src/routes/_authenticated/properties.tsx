@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Building } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/properties")({
-  head: () => ({ meta: [{ title: "Properties — Cape Fear Ops" }] }),
+  head: () => ({ meta: [{ title: "Properties — C Street Management" }] }),
   component: PropertiesPage,
 });
 

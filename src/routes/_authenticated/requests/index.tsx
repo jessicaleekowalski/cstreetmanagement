@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/requests/")({
-  head: () => ({ meta: [{ title: "Maintenance Requests — Cape Fear Ops" }] }),
+  head: () => ({ meta: [{ title: "Maintenance Requests — C Street Management" }] }),
   component: RequestsIndex,
 });
 

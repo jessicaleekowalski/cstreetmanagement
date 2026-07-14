@@ -13,8 +13,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Cape Fear Ops" },
-      { name: "description", content: "Sign in to Cape Fear Ops commercial property maintenance." },
+      { title: "Sign in — C Street Management" },
+      { name: "description", content: "Sign in to C Street Management commercial property maintenance." },
     ],
   }),
   component: AuthPage,
@@ -74,7 +74,7 @@ function AuthPage() {
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-lg font-semibold">Cape Fear Ops</div>
+            <div className="text-lg font-semibold">C Street Management</div>
             <div className="text-xs text-muted-foreground">Commercial property maintenance</div>
           </div>
         </div>
