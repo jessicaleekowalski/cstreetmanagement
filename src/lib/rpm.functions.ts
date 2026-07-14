@@ -165,8 +165,23 @@ export const createRequest = createServerFn({ method: "POST" })
       .select("id, request_number")
       .single();
     if (error) throw new Error(error.message);
+
+    // Fire-and-forget: notify property managers assigned to this property.
+    try {
+      const { getManagerUserIds, sendPushToUsers } = await import("@/lib/push.server");
+      const managerIds = await getManagerUserIds(data.property_id);
+      await sendPushToUsers(managerIds, {
+        title: `New maintenance request #${inserted.request_number}`,
+        body: data.title,
+        url: `/requests/${inserted.id}`,
+        tag: `request-${inserted.id}`,
+      });
+    } catch (e) {
+      console.warn("[push] createRequest notify failed", e instanceof Error ? e.message : e);
+    }
     return inserted;
   });
+
 
 // -------- Owner acts on approval --------
 const ApprovalActionInput = z.object({
@@ -209,8 +224,37 @@ export const decideApproval = createServerFn({ method: "POST" })
         .update({ status: newStatus })
         .eq("id", appr.request_id);
     }
+
+    // Notify the request submitter + assigned managers of the status change.
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: req } = await supabaseAdmin
+        .from("maintenance_requests")
+        .select("submitted_by, request_number, title, property_id")
+        .eq("id", appr.request_id)
+        .maybeSingle();
+      if (req) {
+        const { getManagerUserIds, sendPushToUsers } = await import("@/lib/push.server");
+        const managerIds = await getManagerUserIds(req.property_id);
+        const recipients = [req.submitted_by, ...managerIds].filter(Boolean) as string[];
+        const label =
+          data.decision === "approved" ? "approved"
+          : data.decision === "declined" ? "declined"
+          : data.decision === "additional_estimate_requested" ? "needs another estimate"
+          : "has an owner question";
+        await sendPushToUsers(recipients, {
+          title: `Request #${req.request_number} ${label}`,
+          body: req.title,
+          url: `/requests/${appr.request_id}`,
+          tag: `request-${appr.request_id}`,
+        });
+      }
+    } catch (e) {
+      console.warn("[push] decideApproval notify failed", e instanceof Error ? e.message : e);
+    }
     return { ok: true };
   });
+
 
 // -------- Data for the tenant request form --------
 export const getTenantContext = createServerFn({ method: "GET" })
@@ -339,8 +383,34 @@ export const createEstimate = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+
+    // Notify owner(s) that a new estimate/invoice is ready for approval.
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: req } = await supabaseAdmin
+        .from("maintenance_requests")
+        .select("property_id, request_number, title")
+        .eq("id", data.request_id)
+        .maybeSingle();
+      if (req) {
+        const { getOwnerUserIds, sendPushToUsers } = await import("@/lib/push.server");
+        const ownerIds = await getOwnerUserIds(req.property_id);
+        const isInvoice = !!data.invoice;
+        await sendPushToUsers(ownerIds, {
+          title: isInvoice
+            ? `New invoice on request #${req.request_number}`
+            : `Estimate ready for #${req.request_number}`,
+          body: `${req.title} — $${data.amount.toLocaleString()}`,
+          url: `/requests/${data.request_id}`,
+          tag: `request-${data.request_id}`,
+        });
+      }
+    } catch (e) {
+      console.warn("[push] createEstimate notify failed", e instanceof Error ? e.message : e);
+    }
     return { id: est.id, attachment_id };
   });
+
 
 // -------- Signed URL for viewing an uploaded invoice/attachment --------
 export const getAttachmentUrl = createServerFn({ method: "POST" })

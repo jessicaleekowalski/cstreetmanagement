@@ -8,6 +8,7 @@ import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, LogOut, 
 import logoAsset from "@/assets/c-street-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { PushToggle } from "@/components/push-toggle";
 import { toast } from "sonner";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
@@ -136,6 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="pt-1 text-xs text-sidebar-foreground/60 truncate">{me?.email}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50">Active: {roleLabel}</div>
+          <PushToggle />
           <Button size="sm" variant="ghost" onClick={signOut} className="w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
           </Button>
