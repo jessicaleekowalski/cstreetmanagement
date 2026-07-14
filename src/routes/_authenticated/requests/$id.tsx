@@ -83,21 +83,19 @@ function RequestDetailPage() {
             </Card>
           )}
 
-          {!isTenant && data.estimates.length > 0 && (
+          {!isTenant && (
             <Card>
-              <CardHeader><CardTitle className="text-base">Estimates</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-base">Estimates</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-2">
+                {data.estimates.length === 0 && (
+                  <div className="text-xs text-muted-foreground">No estimates yet.</div>
+                )}
                 {data.estimates.map(e => (
-                  <div key={e.id} className={`rounded-md border p-3 ${e.is_recommended ? "border-primary/50 bg-primary/5" : ""}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium">{e.vendor?.name ?? "Vendor"}</div>
-                      <div className="text-sm font-semibold">{money(e.amount)}</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">{e.description}</div>
-                    {e.scope_of_work && <div className="text-xs mt-2">{e.scope_of_work}</div>}
-                    {e.is_recommended && <div className="text-[10px] uppercase tracking-wider text-primary mt-2">Recommended</div>}
-                  </div>
+                  <EstimateRow key={e.id} estimate={e} />
                 ))}
+                {isManager && <AddEstimateForm requestId={r.id} />}
               </CardContent>
             </Card>
           )}
