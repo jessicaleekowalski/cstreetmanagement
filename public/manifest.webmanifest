@@ -4,7 +4,7 @@
   "description": "Commercial property maintenance operations for C-Street Management Group.",
   "start_url": "/dashboard",
   "scope": "/",
-  "display": "minimal-ui",
+  "display": "standalone",
   "background_color": "#0b1e34",
   "theme_color": "#0b1e34",
   "orientation": "portrait",
