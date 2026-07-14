@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/requests/")({
-  head: () => ({ meta: [{ title: "Maintenance Requests — C Street Management Group" }] }),
+  head: () => ({ meta: [{ title: "Maintenance Requests — C-Street Management Group" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
     status: typeof s.status === "string" ? s.status : undefined,
     urgency: typeof s.urgency === "string" ? s.urgency : undefined,

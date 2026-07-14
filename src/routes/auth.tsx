@@ -13,8 +13,8 @@ import logoAsset from "@/assets/c-street-logo.png.asset.json";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — C Street Management Group" },
-      { name: "description", content: "Sign in to C Street Management Group commercial property maintenance." },
+      { title: "Sign in — C-Street Management Group" },
+      { name: "description", content: "Sign in to C-Street Management Group commercial property maintenance." },
     ],
   }),
   component: AuthPage,
@@ -74,7 +74,7 @@ function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <img src={logoAsset.url} alt="C Street Property Management — Wrightsville Beach, North Carolina" className="h-32 w-32 rounded-lg object-cover shadow-sm" />
+          <img src={logoAsset.url} alt="C-Street Property Management — Wrightsville Beach, North Carolina" className="h-32 w-32 rounded-lg object-cover shadow-sm" />
           <div className="mt-4 text-xs uppercase tracking-[0.22em] text-muted-foreground">Wrightsville Beach, NC</div>
           <div className="mt-1 text-sm text-muted-foreground">Commercial property management operations</div>
         </div>
