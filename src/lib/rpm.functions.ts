@@ -282,6 +282,84 @@ export const listVendors = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+// -------- Managers create an estimate (optionally with an uploaded invoice) --------
+const CreateEstimateInput = z.object({
+  request_id: z.string().uuid(),
+  vendor_id: z.string().uuid(),
+  amount: z.number().positive().max(10_000_000),
+  description: z.string().trim().max(500).optional().nullable(),
+  scope_of_work: z.string().trim().max(2000).optional().nullable(),
+  is_recommended: z.boolean().optional(),
+  invoice: z.object({
+    storage_path: z.string().min(1).max(500),
+    file_name: z.string().min(1).max(255),
+    content_type: z.string().max(120).optional().nullable(),
+    size_bytes: z.number().int().nonnegative().optional().nullable(),
+  }).optional().nullable(),
+});
+
+export const createEstimate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => CreateEstimateInput.parse(raw))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    let attachment_id: string | null = null;
+    if (data.invoice) {
+      const { data: att, error: attErr } = await supabase
+        .from("request_attachments")
+        .insert({
+          request_id: data.request_id,
+          storage_path: data.invoice.storage_path,
+          file_name: data.invoice.file_name,
+          content_type: data.invoice.content_type ?? null,
+          size_bytes: data.invoice.size_bytes ?? null,
+          attachment_type: "invoice",
+          uploaded_by: userId,
+          tenant_visible: false,
+          owner_visible: true,
+        })
+        .select("id")
+        .single();
+      if (attErr) throw new Error(attErr.message);
+      attachment_id = att.id;
+    }
+    const { data: est, error } = await supabase
+      .from("estimates")
+      .insert({
+        request_id: data.request_id,
+        vendor_id: data.vendor_id,
+        amount: data.amount,
+        description: data.description ?? null,
+        scope_of_work: data.scope_of_work ?? null,
+        is_recommended: data.is_recommended ?? false,
+        attachment_id,
+        received_at: new Date().toISOString(),
+        created_by: userId,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: est.id, attachment_id };
+  });
+
+// -------- Signed URL for viewing an uploaded invoice/attachment --------
+export const getAttachmentUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ attachment_id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const { data: att, error } = await context.supabase
+      .from("request_attachments")
+      .select("storage_path, file_name")
+      .eq("id", data.attachment_id)
+      .maybeSingle();
+    if (error || !att) throw new Error(error?.message ?? "Attachment not found");
+    const { data: signed, error: sErr } = await context.supabase
+      .storage.from("request-files")
+      .createSignedUrl(att.storage_path, 60 * 10);
+    if (sErr || !signed) throw new Error(sErr?.message ?? "Could not sign URL");
+    return { url: signed.signedUrl, file_name: att.file_name };
+  });
+
 export const listNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
