@@ -11,6 +11,11 @@ import { PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/requests/")({
   head: () => ({ meta: [{ title: "Maintenance Requests — C Street Management" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    status: typeof s.status === "string" ? s.status : undefined,
+    urgency: typeof s.urgency === "string" ? s.urgency : undefined,
+    q: typeof s.q === "string" ? s.q : undefined,
+  }),
   component: RequestsIndex,
 });
 
@@ -21,9 +26,10 @@ function RequestsIndex() {
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const isTenant = me?.roles?.includes("tenant");
 
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState<string>("all");
-  const [urgency, setUrgency] = useState<string>("all");
+  const sp = Route.useSearch();
+  const [q, setQ] = useState(sp.q ?? "");
+  const [status, setStatus] = useState<string>(sp.status ?? "all");
+  const [urgency, setUrgency] = useState<string>(sp.urgency ?? "all");
 
   const filtered = useMemo(() => {
     return requests.filter(r => {
