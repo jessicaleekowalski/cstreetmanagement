@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2 } from "lucide-react";
 import { toast } from "sonner";
+import logoAsset from "@/assets/c-street-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -69,14 +69,10 @@ function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Building2 className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-lg font-semibold">C Street Management</div>
-            <div className="text-xs text-muted-foreground">Commercial property maintenance</div>
-          </div>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img src={logoAsset.url} alt="C Street Property Management — Wrightsville Beach, North Carolina" className="h-32 w-32 rounded-lg object-cover shadow-sm" />
+          <div className="mt-4 text-xs uppercase tracking-[0.22em] text-muted-foreground">Wrightsville Beach, NC</div>
+          <div className="mt-1 text-sm text-muted-foreground">Commercial property management operations</div>
         </div>
 
         <Card>

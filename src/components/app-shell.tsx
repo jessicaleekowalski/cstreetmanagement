@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getMe } from "@/lib/rpm.functions";
-import { Building2, LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, ShieldCheck, LogOut, PlusCircle, History } from "lucide-react";
+import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, ShieldCheck, LogOut, PlusCircle, History } from "lucide-react";
+import logoAsset from "@/assets/c-street-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -66,13 +67,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background text-foreground">
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
-        <div className="flex items-center gap-2 px-4 h-14 border-b border-sidebar-border">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-            <Building2 className="h-4 w-4" />
-          </div>
+        <div className="flex items-center gap-3 px-4 h-16 border-b border-sidebar-border">
+          <img src={logoAsset.url} alt="C Street Property Management" className="h-10 w-10 rounded object-cover" />
           <div className="leading-tight">
-            <div className="text-sm font-semibold">C Street Management</div>
-            <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Commercial Maintenance</div>
+            <div className="text-sm font-semibold tracking-wide">C Street</div>
+            <div className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/60">Property Management</div>
           </div>
         </div>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
@@ -105,10 +104,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden h-14 border-b flex items-center justify-between px-4 bg-card">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Building2 className="h-3.5 w-3.5" />
-            </div>
-            <span className="font-semibold text-sm">C Street Management</span>
+            <img src={logoAsset.url} alt="C Street" className="h-8 w-8 rounded object-cover" />
+            <span className="font-semibold text-sm tracking-wide">C Street</span>
           </div>
           <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
         </header>
