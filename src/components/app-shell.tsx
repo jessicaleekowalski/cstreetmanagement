@@ -137,6 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="pt-1 text-xs text-sidebar-foreground/60 truncate">{me?.email}</div>
           <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50">Active: {roleLabel}</div>
+          <PushToggle />
           <Button size="sm" variant="ghost" onClick={signOut} className="w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
           </Button>
