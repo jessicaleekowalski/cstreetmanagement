@@ -33,16 +33,16 @@ function ManagerDashboard() {
       <PageHeader title="Operations dashboard" description="All maintenance activity across your managed properties." />
 
       <section className="grid gap-3 grid-cols-2 md:grid-cols-4 xl:grid-cols-5">
-        <StatCard label="New requests" value={stats?.newRequests ?? 0} hint="Awaiting review" />
-        <StatCard label="Urgent / emergency" value={stats?.urgent ?? 0} tone="urgent" hint="Open issues" />
-        <StatCard label="Awaiting info" value={stats?.awaitingInfo ?? 0} tone="warning" />
-        <StatCard label="Needs estimate" value={stats?.needsEstimate ?? 0} />
-        <StatCard label="Pending approval" value={stats?.awaitingApproval ?? 0} tone="warning" hint={money(stats?.dollarsAwaitingApproval)} />
-        <StatCard label="Approved · needs coord" value={stats?.approvedNeedingCoord ?? 0} />
-        <StatCard label="Scheduled" value={stats?.scheduled ?? 0} />
-        <StatCard label="Overdue" value={stats?.overdue ?? 0} tone="urgent" />
-        <StatCard label="Awaiting invoice" value={stats?.awaitingInvoice ?? 0} />
-        <StatCard label="Estimated vs final" value={`${money(stats?.totalEstimated)} / ${money(stats?.totalFinal)}`} />
+        <StatCard label="New requests" value={stats?.newRequests ?? 0} hint="Awaiting review" to="/requests" search={{ status: "submitted" }} />
+        <StatCard label="Urgent / emergency" value={stats?.urgent ?? 0} tone="urgent" hint="Open issues" to="/requests" search={{ urgency: "urgent" }} />
+        <StatCard label="Awaiting info" value={stats?.awaitingInfo ?? 0} tone="warning" to="/requests" search={{ status: "awaiting_information" }} />
+        <StatCard label="Needs estimate" value={stats?.needsEstimate ?? 0} to="/requests" search={{ status: "estimating" }} />
+        <StatCard label="Pending approval" value={stats?.awaitingApproval ?? 0} tone="warning" hint={money(stats?.dollarsAwaitingApproval)} to="/requests" search={{ status: "awaiting_owner_approval" }} />
+        <StatCard label="Approved · needs coord" value={stats?.approvedNeedingCoord ?? 0} to="/requests" search={{ status: "approved" }} />
+        <StatCard label="Scheduled" value={stats?.scheduled ?? 0} to="/requests" search={{ status: "scheduled" }} />
+        <StatCard label="Overdue" value={stats?.overdue ?? 0} tone="urgent" to="/requests" search={{ status: "in_progress" }} />
+        <StatCard label="Awaiting invoice" value={stats?.awaitingInvoice ?? 0} to="/requests" search={{ status: "work_completed" }} />
+        <StatCard label="Estimated vs final" value={`${money(stats?.totalEstimated)} / ${money(stats?.totalFinal)}`} to="/requests" />
       </section>
 
       <section>
@@ -104,12 +104,12 @@ function OwnerDashboard() {
       <PageHeader title="Owner overview" description="Riverfront Holdings LLC · Wilmington, NC" />
 
       <section className="grid gap-3 grid-cols-2 md:grid-cols-4">
-        <StatCard label="Pending approvals" value={stats?.awaitingApproval ?? 0} tone="warning" hint={money(stats?.dollarsAwaitingApproval) + " awaiting"} />
-        <StatCard label="Urgent open issues" value={stats?.urgent ?? 0} tone="urgent" />
-        <StatCard label="Open work orders" value={stats?.openWorkOrders ?? 0} />
-        <StatCard label="Approved this month" value={money(stats?.approvedMonth)} />
-        <StatCard label="Final spend this month" value={money(stats?.finalMonth)} tone="success" />
-        <StatCard label="Estimated vs final (YTD)" value={`${money(stats?.totalEstimated)} / ${money(stats?.totalFinal)}`} />
+        <StatCard label="Pending approvals" value={stats?.awaitingApproval ?? 0} tone="warning" hint={money(stats?.dollarsAwaitingApproval) + " awaiting"} to="/requests" search={{ status: "awaiting_owner_approval" }} />
+        <StatCard label="Urgent open issues" value={stats?.urgent ?? 0} tone="urgent" to="/requests" search={{ urgency: "urgent" }} />
+        <StatCard label="Open work orders" value={stats?.openWorkOrders ?? 0} to="/requests" search={{ status: "in_progress" }} />
+        <StatCard label="Approved this month" value={money(stats?.approvedMonth)} to="/requests" search={{ status: "approved" }} />
+        <StatCard label="Final spend this month" value={money(stats?.finalMonth)} tone="success" to="/requests" search={{ status: "completed" }} />
+        <StatCard label="Estimated vs final (YTD)" value={`${money(stats?.totalEstimated)} / ${money(stats?.totalFinal)}`} to="/requests" />
       </section>
 
       <section>
