@@ -51,18 +51,20 @@ export function UrgencyBadge({ urgency }: { urgency: string | null | undefined }
   );
 }
 
-export function StatCard({ label, value, hint, tone }: { label: string; value: ReactNode; hint?: string; tone?: "default" | "warning" | "urgent" | "success" }) {
+export function StatCard({ label, value, hint, tone, to, search }: { label: string; value: ReactNode; hint?: string; tone?: "default" | "warning" | "urgent" | "success"; to?: string; search?: Record<string, string> }) {
   const toneCls = tone === "urgent" ? "border-destructive/40"
     : tone === "warning" ? "border-warning/50"
     : tone === "success" ? "border-success/50"
     : "border-border";
-  return (
-    <div className={cn("rounded-lg border bg-card p-4", toneCls)}>
+  const inner = (
+    <div className={cn("rounded-lg border bg-card p-4 h-full", toneCls, to && "hover:border-primary/60 hover:shadow-sm transition-colors cursor-pointer")}>
       <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 text-2xl font-semibold">{value}</div>
       {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
+  if (to) return <Link to={to as never} search={search as never} className="block">{inner}</Link>;
+  return inner;
 }
 
 export function money(n: number | null | undefined) {
