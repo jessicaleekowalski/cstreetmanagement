@@ -220,6 +220,56 @@ export type Database = {
           },
         ]
       }
+      gl_transactions: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          property_id: string
+          txn_date: string
+          txn_type: string
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          property_id: string
+          txn_date: string
+          txn_type: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          property_id?: string
+          txn_date?: string
+          txn_type?: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gl_transactions_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_requests: {
         Row: {
           access_information: string | null
@@ -609,6 +659,97 @@ export type Database = {
           },
         ]
       }
+      property_budgets: {
+        Row: {
+          budgeted_amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          property_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          budgeted_amount?: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          budgeted_amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_budgets_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_financials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          gross_income: number
+          id: string
+          notes: string | null
+          operating_expenses: number
+          other_income: number
+          period_month: string
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          gross_income?: number
+          id?: string
+          notes?: string | null
+          operating_expenses?: number
+          other_income?: number
+          period_month: string
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          gross_income?: number
+          id?: string
+          notes?: string | null
+          operating_expenses?: number
+          other_income?: number
+          period_month?: string
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_financials_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_manager_assignments: {
         Row: {
           created_at: string
@@ -631,6 +772,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "property_manager_assignments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_valuations: {
+        Row: {
+          as_of_date: string
+          created_at: string
+          created_by: string | null
+          id: string
+          market_value: number
+          property_id: string
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          as_of_date: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          market_value: number
+          property_id: string
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          as_of_date?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          market_value?: number
+          property_id?: string
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_valuations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"

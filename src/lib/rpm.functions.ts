@@ -365,7 +365,8 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const s = context.supabase;
-    const [propsRes, reqsRes, estRes] = await Promise.all([
+    const year = new Date().getFullYear();
+    const [propsRes, reqsRes, estRes, finRes, budRes, valRes, txnRes] = await Promise.all([
       s.from("properties").select("id, name, city, state, property_type, square_feet, owner_entity:owner_entities(name)").order("name"),
       s.from("maintenance_requests").select(`
         id, request_number, title, status, property_id, submitted_at, completed_at,
@@ -374,6 +375,10 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
         assigned_vendor:vendors(id, name)
       `).order("submitted_at", { ascending: false }),
       s.from("estimates").select("id, request_id, amount, is_recommended, vendor:vendors(id, name)"),
+      s.from("property_financials").select("*").order("period_month", { ascending: true }),
+      s.from("property_budgets").select("*").eq("year", year),
+      s.from("property_valuations").select("*").order("as_of_date", { ascending: false }),
+      s.from("gl_transactions").select("*").order("txn_date", { ascending: false }).limit(2000),
     ]);
     if (propsRes.error) throw new Error(propsRes.error.message);
     if (reqsRes.error) throw new Error(reqsRes.error.message);
@@ -381,6 +386,10 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
     const properties = propsRes.data ?? [];
     const requests = reqsRes.data ?? [];
     const estimates = estRes.data ?? [];
+    const financials = finRes.data ?? [];
+    const budgets = budRes.data ?? [];
+    const valuations = valRes.data ?? [];
+    const txns = txnRes.data ?? [];
 
     const num = (v: unknown) => Number(v ?? 0);
     const isOpen = (s: string) => !["completed", "closed", "cancelled", "declined"].includes(s);
@@ -390,6 +399,12 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push(monthKey(d));
+    }
+
+    // Latest valuation per property
+    const latestValuation = new Map<string, number>();
+    for (const v of valuations) {
+      if (!latestValuation.has(v.property_id)) latestValuation.set(v.property_id, num(v.market_value));
     }
 
     // Vendor spend across all requests
@@ -405,13 +420,37 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
 
     const perProperty = properties.map(p => {
       const rs = requests.filter(r => r.property_id === p.id);
+      const fs = financials.filter(f => f.property_id === p.id);
+      const bs = budgets.filter(b => b.property_id === p.id);
+      const ts = txns.filter(t => t.property_id === p.id);
+
       const spendByMonth = new Map(months.map(m => [m, 0]));
+      const incomeByMonth = new Map(months.map(m => [m, 0]));
+      const expenseByMonth = new Map(months.map(m => [m, 0]));
+
       for (const r of rs) {
         if (r.completed_at && r.final_cost) {
           const k = monthKey(new Date(r.completed_at));
           if (spendByMonth.has(k)) spendByMonth.set(k, spendByMonth.get(k)! + num(r.final_cost));
         }
       }
+      for (const f of fs) {
+        const k = monthKey(new Date(f.period_month));
+        if (incomeByMonth.has(k)) {
+          incomeByMonth.set(k, incomeByMonth.get(k)! + num(f.gross_income) + num(f.other_income));
+          expenseByMonth.set(k, expenseByMonth.get(k)! + num(f.operating_expenses));
+        }
+      }
+
+      const totalIncome = fs.reduce((a, f) => a + num(f.gross_income) + num(f.other_income), 0);
+      const totalOpex = fs.reduce((a, f) => a + num(f.operating_expenses), 0);
+      const noi = totalIncome - totalOpex;
+      const marketValue = latestValuation.get(p.id) ?? 0;
+      const capRate = marketValue > 0 ? (noi / marketValue) * 100 : null;
+
+      const totalBudget = bs.reduce((a, b) => a + num(b.budgeted_amount), 0);
+      const budgetVariance = totalBudget - totalOpex;
+
       const totalEstimated = rs.reduce((a, r) => a + num(r.estimated_cost), 0);
       const totalApproved = rs.reduce((a, r) => a + num(r.approved_amount), 0);
       const totalFinal = rs.reduce((a, r) => a + num(r.final_cost), 0);
@@ -420,6 +459,36 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
       const awaitingApproval = rs.filter(r => r.status === "awaiting_owner_approval");
       const ownerSpend = rs.filter(r => r.responsibility === "owner").reduce((a, r) => a + num(r.final_cost), 0);
       const tenantSpend = rs.filter(r => r.responsibility === "tenant").reduce((a, r) => a + num(r.final_cost), 0);
+
+      // Cash flow: last 6 months average, then forecast next 3
+      const monthlyCash = months.map(m => ({
+        month: m,
+        income: incomeByMonth.get(m) ?? 0,
+        expense: expenseByMonth.get(m) ?? 0,
+        net: (incomeByMonth.get(m) ?? 0) - (expenseByMonth.get(m) ?? 0),
+      }));
+      const trailing6 = monthlyCash.slice(-6).filter(m => m.income > 0 || m.expense > 0);
+      const avgNet = trailing6.length ? trailing6.reduce((a, m) => a + m.net, 0) / trailing6.length : 0;
+      const avgIncome = trailing6.length ? trailing6.reduce((a, m) => a + m.income, 0) / trailing6.length : 0;
+      const avgExpense = trailing6.length ? trailing6.reduce((a, m) => a + m.expense, 0) / trailing6.length : 0;
+      const forecast: { month: string; income: number; expense: number; net: number }[] = [];
+      for (let i = 1; i <= 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        forecast.push({ month: monthKey(d), income: avgIncome, expense: avgExpense, net: avgNet });
+      }
+
+      // Budget vs actual by category
+      const actualByCategory = new Map<string, number>();
+      for (const t of ts) {
+        if (t.txn_type !== "expense" || !t.category) continue;
+        actualByCategory.set(t.category, (actualByCategory.get(t.category) ?? 0) + num(t.amount));
+      }
+      const budgetLines = bs.map(b => ({
+        category: b.category,
+        budgeted: num(b.budgeted_amount),
+        actual: actualByCategory.get(b.category) ?? 0,
+      })).sort((a, b) => (b.actual - b.budgeted) - (a.actual - a.budgeted));
+
       return {
         property: p,
         counts: {
@@ -427,6 +496,9 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
           open: openCount,
           completed: rs.filter(r => r.status === "completed").length,
           awaitingApproval: awaitingApproval.length,
+          financialsMonths: fs.length,
+          budgetLines: bs.length,
+          transactions: ts.length,
         },
         totals: {
           estimated: totalEstimated,
@@ -436,8 +508,18 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
           awaitingApprovalDollars: awaitingApproval.reduce((a, r) => a + num(r.estimated_cost), 0),
           ownerSpend,
           tenantSpend,
+          income: totalIncome,
+          opex: totalOpex,
+          noi,
+          capRate,
+          marketValue,
+          budget: totalBudget,
+          budgetVariance,
         },
         monthly: months.map(m => ({ month: m, spend: spendByMonth.get(m) ?? 0 })),
+        cashFlow: monthlyCash,
+        forecast,
+        budgetLines,
         recent: rs.slice(0, 5).map(r => ({
           id: r.id,
           request_number: r.request_number,
@@ -452,20 +534,37 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
       };
     });
 
+    const sum = (fn: (p: typeof perProperty[number]) => number) => perProperty.reduce((a, p) => a + fn(p), 0);
+    const portfolioIncome = sum(p => p.totals.income);
+    const portfolioOpex = sum(p => p.totals.opex);
+    const portfolioNoi = portfolioIncome - portfolioOpex;
+    const portfolioValue = sum(p => p.totals.marketValue);
+    const portfolioCap = portfolioValue > 0 ? (portfolioNoi / portfolioValue) * 100 : null;
+
     const portfolio = {
       properties: properties.length,
-      totals: perProperty.reduce((a, p) => ({
-        estimated: a.estimated + p.totals.estimated,
-        approved: a.approved + p.totals.approved,
-        final: a.final + p.totals.final,
-        variance: a.variance + p.totals.variance,
-        awaitingApprovalDollars: a.awaitingApprovalDollars + p.totals.awaitingApprovalDollars,
-        ownerSpend: a.ownerSpend + p.totals.ownerSpend,
-        tenantSpend: a.tenantSpend + p.totals.tenantSpend,
-      }), { estimated: 0, approved: 0, final: 0, variance: 0, awaitingApprovalDollars: 0, ownerSpend: 0, tenantSpend: 0 }),
+      hasFinancialData: financials.length > 0 || budgets.length > 0 || txns.length > 0,
+      totals: {
+        estimated: sum(p => p.totals.estimated),
+        approved: sum(p => p.totals.approved),
+        final: sum(p => p.totals.final),
+        variance: sum(p => p.totals.variance),
+        awaitingApprovalDollars: sum(p => p.totals.awaitingApprovalDollars),
+        ownerSpend: sum(p => p.totals.ownerSpend),
+        tenantSpend: sum(p => p.totals.tenantSpend),
+        income: portfolioIncome,
+        opex: portfolioOpex,
+        noi: portfolioNoi,
+        marketValue: portfolioValue,
+        capRate: portfolioCap,
+        budget: sum(p => p.totals.budget),
+        budgetVariance: sum(p => p.totals.budgetVariance),
+      },
       monthly: months.map(m => ({
         month: m,
         spend: perProperty.reduce((a, p) => a + (p.monthly.find(x => x.month === m)?.spend ?? 0), 0),
+        income: perProperty.reduce((a, p) => a + (p.cashFlow.find(x => x.month === m)?.income ?? 0), 0),
+        expense: perProperty.reduce((a, p) => a + (p.cashFlow.find(x => x.month === m)?.expense ?? 0), 0),
       })),
       topVendors: [...vendorMap.values()].sort((a, b) => b.total - a.total).slice(0, 5),
       openCount: requests.filter(r => isOpen(r.status)).length,
@@ -474,6 +573,122 @@ export const getFinanceOverview = createServerFn({ method: "GET" })
 
     return { portfolio, perProperty };
   });
+
+// -------- Upload helpers: parse client-side, POST parsed rows --------
+const FinancialRow = z.object({
+  property_id: z.string().uuid(),
+  period_month: z.string(), // YYYY-MM-DD or YYYY-MM
+  gross_income: z.number().nonnegative().default(0),
+  operating_expenses: z.number().nonnegative().default(0),
+  other_income: z.number().nonnegative().default(0),
+  notes: z.string().optional().nullable(),
+});
+const BudgetRow = z.object({
+  property_id: z.string().uuid(),
+  year: z.number().int(),
+  category: z.string().min(1),
+  budgeted_amount: z.number(),
+  notes: z.string().optional().nullable(),
+});
+const TxnRow = z.object({
+  property_id: z.string().uuid(),
+  txn_date: z.string(),
+  txn_type: z.enum(["income", "expense"]),
+  category: z.string().optional().nullable(),
+  vendor: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  amount: z.number(),
+});
+const ValuationRow = z.object({
+  property_id: z.string().uuid(),
+  as_of_date: z.string(),
+  market_value: z.number().nonnegative(),
+  source: z.string().optional().nullable(),
+});
+
+function normalizeMonth(v: string): string {
+  // Accept YYYY-MM, YYYY-MM-DD, or MM/YYYY -> normalize to YYYY-MM-01
+  const s = v.trim();
+  const m1 = /^(\d{4})-(\d{2})(?:-\d{2})?$/.exec(s);
+  if (m1) return `${m1[1]}-${m1[2]}-01`;
+  const m2 = /^(\d{1,2})\/(\d{4})$/.exec(s);
+  if (m2) return `${m2[2]}-${m2[1].padStart(2, "0")}-01`;
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+  throw new Error(`Invalid month: ${v}`);
+}
+
+export const uploadFinancials = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ rows: z.array(FinancialRow) }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const rows = data.rows.map(r => ({ ...r, period_month: normalizeMonth(r.period_month), created_by: context.userId }));
+    const { error, count } = await context.supabase
+      .from("property_financials")
+      .upsert(rows, { onConflict: "property_id,period_month", count: "exact" });
+    if (error) throw new Error(error.message);
+    return { inserted: count ?? rows.length };
+  });
+
+export const uploadBudgets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ rows: z.array(BudgetRow) }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const rows = data.rows.map(r => ({ ...r, created_by: context.userId }));
+    const { error, count } = await context.supabase
+      .from("property_budgets")
+      .upsert(rows, { onConflict: "property_id,year,category", count: "exact" });
+    if (error) throw new Error(error.message);
+    return { inserted: count ?? rows.length };
+  });
+
+export const uploadTransactions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ rows: z.array(TxnRow) }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const rows = data.rows.map(r => ({ ...r, created_by: context.userId }));
+    const { error, count } = await context.supabase
+      .from("gl_transactions")
+      .insert(rows, { count: "exact" });
+    if (error) throw new Error(error.message);
+    return { inserted: count ?? rows.length };
+  });
+
+export const uploadValuations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({ rows: z.array(ValuationRow) }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const rows = data.rows.map(r => ({ ...r, created_by: context.userId }));
+    const { error, count } = await context.supabase
+      .from("property_valuations")
+      .upsert(rows, { onConflict: "property_id,as_of_date", count: "exact" });
+    if (error) throw new Error(error.message);
+    return { inserted: count ?? rows.length };
+  });
+
+export const clearFinancialData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => z.object({
+    kind: z.enum(["financials", "budgets", "transactions", "valuations"]),
+    property_id: z.string().uuid().optional(),
+  }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const s = context.supabase;
+    const run = async (table: "property_financials" | "property_budgets" | "gl_transactions" | "property_valuations") => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = (s.from as any)(table).delete();
+      if (data.property_id) q = q.eq("property_id", data.property_id);
+      else q = q.not("id", "is", null);
+      return await q;
+    };
+    const map = { financials: "property_financials", budgets: "property_budgets", transactions: "gl_transactions", valuations: "property_valuations" } as const;
+    const res = await run(map[data.kind]);
+    if (res.error) throw new Error(res.error.message);
+    return { ok: true };
+  });
+
+
+
 
 export const listNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

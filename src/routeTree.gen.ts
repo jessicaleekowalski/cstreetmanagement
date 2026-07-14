@@ -22,6 +22,7 @@ import { Route as AuthenticatedRequestsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedRequestsIndexRouteImport } from './routes/_authenticated/requests/index'
 import { Route as AuthenticatedRequestsNewRouteImport } from './routes/_authenticated/requests/new'
 import { Route as AuthenticatedRequestsIdRouteImport } from './routes/_authenticated/requests/$id'
+import { Route as AuthenticatedFinanceUploadRouteImport } from './routes/_authenticated/finance_.upload'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -91,6 +92,12 @@ const AuthenticatedRequestsIdRoute = AuthenticatedRequestsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedRequestsRouteRoute,
 } as any)
+const AuthenticatedFinanceUploadRoute =
+  AuthenticatedFinanceUploadRouteImport.update({
+    id: '/finance_/upload',
+    path: '/finance/upload',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/properties': typeof AuthenticatedPropertiesRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/finance/upload': typeof AuthenticatedFinanceUploadRoute
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
   '/requests/': typeof AuthenticatedRequestsIndexRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/properties': typeof AuthenticatedPropertiesRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/finance/upload': typeof AuthenticatedFinanceUploadRoute
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
   '/requests': typeof AuthenticatedRequestsIndexRoute
@@ -131,6 +140,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/properties': typeof AuthenticatedPropertiesRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/finance_/upload': typeof AuthenticatedFinanceUploadRoute
   '/_authenticated/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/_authenticated/requests/new': typeof AuthenticatedRequestsNewRoute
   '/_authenticated/requests/': typeof AuthenticatedRequestsIndexRoute
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/properties'
     | '/vendors'
+    | '/finance/upload'
     | '/requests/$id'
     | '/requests/new'
     | '/requests/'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/properties'
     | '/vendors'
+    | '/finance/upload'
     | '/requests/$id'
     | '/requests/new'
     | '/requests'
@@ -175,6 +187,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/properties'
     | '/_authenticated/vendors'
+    | '/_authenticated/finance_/upload'
     | '/_authenticated/requests/$id'
     | '/_authenticated/requests/new'
     | '/_authenticated/requests/'
@@ -279,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsIdRouteImport
       parentRoute: typeof AuthenticatedRequestsRouteRoute
     }
+    '/_authenticated/finance_/upload': {
+      id: '/_authenticated/finance_/upload'
+      path: '/finance/upload'
+      fullPath: '/finance/upload'
+      preLoaderRoute: typeof AuthenticatedFinanceUploadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -308,6 +328,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
+  AuthenticatedFinanceUploadRoute: typeof AuthenticatedFinanceUploadRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -318,6 +339,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPropertiesRoute: AuthenticatedPropertiesRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
+  AuthenticatedFinanceUploadRoute: AuthenticatedFinanceUploadRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
