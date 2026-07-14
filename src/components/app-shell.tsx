@@ -151,7 +151,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <img src={logoAsset.url} alt="C-Street" className="h-8 w-8 rounded object-cover" />
               <span className="font-semibold text-sm tracking-wide">C-Street Management Group</span>
             </div>
-            <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+            <div className="flex items-center gap-1">
+              <PushToggle compact />
+              <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+            </div>
           </div>
           <div className="px-3 pb-2 space-y-1.5">
             <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Demo role — click to switch</div>

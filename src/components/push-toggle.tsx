@@ -41,6 +41,20 @@ export function PushToggle({ compact }: { compact?: boolean }) {
   };
 
   const Icon = on ? Bell : BellOff;
+  if (compact) {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        disabled={busy}
+        onClick={handle}
+        aria-label={denied ? "Notifications blocked" : on ? "Notifications on" : "Enable notifications"}
+        title={denied ? "Notifications blocked" : on ? "Notifications on" : "Enable notifications"}
+      >
+        <Icon className="h-4 w-4" />
+      </Button>
+    );
+  }
   return (
     <Button
       size="sm"
