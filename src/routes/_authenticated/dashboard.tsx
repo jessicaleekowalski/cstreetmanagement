@@ -104,12 +104,12 @@ function OwnerDashboard() {
       <PageHeader title="Owner overview" description="Riverfront Holdings LLC · Wilmington, NC" />
 
       <section className="grid gap-3 grid-cols-2 md:grid-cols-4">
-        <StatCard label="Pending approvals" value={stats?.awaitingApproval ?? 0} tone="warning" hint={money(stats?.dollarsAwaitingApproval) + " awaiting"} />
-        <StatCard label="Urgent open issues" value={stats?.urgent ?? 0} tone="urgent" />
-        <StatCard label="Open work orders" value={stats?.openWorkOrders ?? 0} />
-        <StatCard label="Approved this month" value={money(stats?.approvedMonth)} />
-        <StatCard label="Final spend this month" value={money(stats?.finalMonth)} tone="success" />
-        <StatCard label="Estimated vs final (YTD)" value={`${money(stats?.totalEstimated)} / ${money(stats?.totalFinal)}`} />
+        <StatCard label="Pending approvals" value={stats?.awaitingApproval ?? 0} tone="warning" hint={money(stats?.dollarsAwaitingApproval) + " awaiting"} to="/requests" search={{ status: "awaiting_owner_approval" }} />
+        <StatCard label="Urgent open issues" value={stats?.urgent ?? 0} tone="urgent" to="/requests" search={{ urgency: "urgent" }} />
+        <StatCard label="Open work orders" value={stats?.openWorkOrders ?? 0} to="/requests" search={{ status: "in_progress" }} />
+        <StatCard label="Approved this month" value={money(stats?.approvedMonth)} to="/requests" search={{ status: "approved" }} />
+        <StatCard label="Final spend this month" value={money(stats?.finalMonth)} tone="success" to="/requests" search={{ status: "completed" }} />
+        <StatCard label="Estimated vs final (YTD)" value={`${money(stats?.totalEstimated)} / ${money(stats?.totalFinal)}`} to="/requests" />
       </section>
 
       <section>
