@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getMe, setDemoRole } from "@/lib/rpm.functions";
-import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, LogOut, PlusCircle, History } from "lucide-react";
+import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, LogOut, PlusCircle, History, DollarSign } from "lucide-react";
 import logoAsset from "@/assets/c-street-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ const managerNav: NavItem[] = [
   { to: "/requests", label: "Maintenance", icon: Wrench },
   { to: "/properties", label: "Properties", icon: Building },
   { to: "/vendors", label: "Vendors", icon: Users },
+  { to: "/finance", label: "Finance", icon: DollarSign },
   { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
@@ -24,6 +25,7 @@ const ownerNav: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/requests", label: "Pending & History", icon: ClipboardList },
   { to: "/properties", label: "Properties", icon: Building },
+  { to: "/finance", label: "Finance", icon: DollarSign },
   { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
