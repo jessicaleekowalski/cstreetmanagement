@@ -165,8 +165,23 @@ export const createRequest = createServerFn({ method: "POST" })
       .select("id, request_number")
       .single();
     if (error) throw new Error(error.message);
+
+    // Fire-and-forget: notify property managers assigned to this property.
+    try {
+      const { getManagerUserIds, sendPushToUsers } = await import("@/lib/push.server");
+      const managerIds = await getManagerUserIds(data.property_id);
+      await sendPushToUsers(managerIds, {
+        title: `New maintenance request #${inserted.request_number}`,
+        body: data.title,
+        url: `/requests/${inserted.id}`,
+        tag: `request-${inserted.id}`,
+      });
+    } catch (e) {
+      console.warn("[push] createRequest notify failed", e instanceof Error ? e.message : e);
+    }
     return inserted;
   });
+
 
 // -------- Owner acts on approval --------
 const ApprovalActionInput = z.object({
