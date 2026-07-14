@@ -360,6 +360,121 @@ export const getAttachmentUrl = createServerFn({ method: "POST" })
     return { url: signed.signedUrl, file_name: att.file_name };
   });
 
+// -------- Finance overview: portfolio-wide + per-property breakdown --------
+export const getFinanceOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const s = context.supabase;
+    const [propsRes, reqsRes, estRes] = await Promise.all([
+      s.from("properties").select("id, name, city, state, property_type, square_feet, owner_entity:owner_entities(name)").order("name"),
+      s.from("maintenance_requests").select(`
+        id, request_number, title, status, property_id, submitted_at, completed_at,
+        estimated_cost, approved_amount, final_cost,
+        manager_urgency, tenant_urgency, responsibility,
+        assigned_vendor:vendors(id, name)
+      `).order("submitted_at", { ascending: false }),
+      s.from("estimates").select("id, request_id, amount, is_recommended, vendor:vendors(id, name)"),
+    ]);
+    if (propsRes.error) throw new Error(propsRes.error.message);
+    if (reqsRes.error) throw new Error(reqsRes.error.message);
+
+    const properties = propsRes.data ?? [];
+    const requests = reqsRes.data ?? [];
+    const estimates = estRes.data ?? [];
+
+    const num = (v: unknown) => Number(v ?? 0);
+    const isOpen = (s: string) => !["completed", "closed", "cancelled", "declined"].includes(s);
+    const now = new Date();
+    const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const months: string[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(monthKey(d));
+    }
+
+    // Vendor spend across all requests
+    const vendorMap = new Map<string, { name: string; total: number; jobs: number }>();
+    for (const r of requests) {
+      const v = r.assigned_vendor;
+      if (!v || !r.final_cost) continue;
+      const cur = vendorMap.get(v.id) ?? { name: v.name, total: 0, jobs: 0 };
+      cur.total += num(r.final_cost);
+      cur.jobs += 1;
+      vendorMap.set(v.id, cur);
+    }
+
+    const perProperty = properties.map(p => {
+      const rs = requests.filter(r => r.property_id === p.id);
+      const spendByMonth = new Map(months.map(m => [m, 0]));
+      for (const r of rs) {
+        if (r.completed_at && r.final_cost) {
+          const k = monthKey(new Date(r.completed_at));
+          if (spendByMonth.has(k)) spendByMonth.set(k, spendByMonth.get(k)! + num(r.final_cost));
+        }
+      }
+      const totalEstimated = rs.reduce((a, r) => a + num(r.estimated_cost), 0);
+      const totalApproved = rs.reduce((a, r) => a + num(r.approved_amount), 0);
+      const totalFinal = rs.reduce((a, r) => a + num(r.final_cost), 0);
+      const variance = totalFinal - totalApproved;
+      const openCount = rs.filter(r => isOpen(r.status)).length;
+      const awaitingApproval = rs.filter(r => r.status === "awaiting_owner_approval");
+      const ownerSpend = rs.filter(r => r.responsibility === "owner").reduce((a, r) => a + num(r.final_cost), 0);
+      const tenantSpend = rs.filter(r => r.responsibility === "tenant").reduce((a, r) => a + num(r.final_cost), 0);
+      return {
+        property: p,
+        counts: {
+          total: rs.length,
+          open: openCount,
+          completed: rs.filter(r => r.status === "completed").length,
+          awaitingApproval: awaitingApproval.length,
+        },
+        totals: {
+          estimated: totalEstimated,
+          approved: totalApproved,
+          final: totalFinal,
+          variance,
+          awaitingApprovalDollars: awaitingApproval.reduce((a, r) => a + num(r.estimated_cost), 0),
+          ownerSpend,
+          tenantSpend,
+        },
+        monthly: months.map(m => ({ month: m, spend: spendByMonth.get(m) ?? 0 })),
+        recent: rs.slice(0, 5).map(r => ({
+          id: r.id,
+          request_number: r.request_number,
+          title: r.title,
+          status: r.status,
+          final_cost: r.final_cost,
+          approved_amount: r.approved_amount,
+          estimated_cost: r.estimated_cost,
+          vendor: r.assigned_vendor?.name ?? null,
+          completed_at: r.completed_at,
+        })),
+      };
+    });
+
+    const portfolio = {
+      properties: properties.length,
+      totals: perProperty.reduce((a, p) => ({
+        estimated: a.estimated + p.totals.estimated,
+        approved: a.approved + p.totals.approved,
+        final: a.final + p.totals.final,
+        variance: a.variance + p.totals.variance,
+        awaitingApprovalDollars: a.awaitingApprovalDollars + p.totals.awaitingApprovalDollars,
+        ownerSpend: a.ownerSpend + p.totals.ownerSpend,
+        tenantSpend: a.tenantSpend + p.totals.tenantSpend,
+      }), { estimated: 0, approved: 0, final: 0, variance: 0, awaitingApprovalDollars: 0, ownerSpend: 0, tenantSpend: 0 }),
+      monthly: months.map(m => ({
+        month: m,
+        spend: perProperty.reduce((a, p) => a + (p.monthly.find(x => x.month === m)?.spend ?? 0), 0),
+      })),
+      topVendors: [...vendorMap.values()].sort((a, b) => b.total - a.total).slice(0, 5),
+      openCount: requests.filter(r => isOpen(r.status)).length,
+      estimatesCount: estimates.length,
+    };
+
+    return { portfolio, perProperty };
+  });
+
 export const listNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
