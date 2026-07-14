@@ -282,3 +282,147 @@ function OwnerApprovalPanel({ approvalId, recommendedAmount }: { approvalId: str
     </Card>
   );
 }
+
+function EstimateRow({ estimate }: { estimate: { id: string; vendor?: { name?: string | null } | null; amount: number; description?: string | null; scope_of_work?: string | null; is_recommended?: boolean | null; attachment_id?: string | null } }) {
+  const getUrlFn = useServerFn(getAttachmentUrl);
+  const [busy, setBusy] = useState(false);
+  async function openInvoice() {
+    if (!estimate.attachment_id) return;
+    setBusy(true);
+    try {
+      const { url } = await getUrlFn({ data: { attachment_id: estimate.attachment_id } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open invoice");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className={`rounded-md border p-3 ${estimate.is_recommended ? "border-primary/50 bg-primary/5" : ""}`}>
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium">{estimate.vendor?.name ?? "Vendor"}</div>
+        <div className="text-sm font-semibold">{money(estimate.amount)}</div>
+      </div>
+      {estimate.description && <div className="text-xs text-muted-foreground mt-1">{estimate.description}</div>}
+      {estimate.scope_of_work && <div className="text-xs mt-2">{estimate.scope_of_work}</div>}
+      <div className="mt-2 flex items-center gap-3">
+        {estimate.is_recommended && <div className="text-[10px] uppercase tracking-wider text-primary">Recommended</div>}
+        {estimate.attachment_id && (
+          <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={openInvoice} disabled={busy}>
+            <Paperclip className="h-3 w-3 mr-1" /> {busy ? "Opening…" : "View invoice"}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AddEstimateForm({ requestId }: { requestId: string }) {
+  const qc = useQueryClient();
+  const listVendorsFn = useServerFn(listVendors);
+  const createFn = useServerFn(createEstimate);
+  const { data: vendors } = useQuery({ queryKey: ["vendors"], queryFn: () => listVendorsFn() });
+  const [open, setOpen] = useState(false);
+  const [vendorId, setVendorId] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [scope, setScope] = useState<string>("");
+  const [recommended, setRecommended] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  function reset() {
+    setVendorId(""); setAmount(""); setDescription(""); setScope(""); setRecommended(false); setFile(null);
+  }
+
+  async function submit() {
+    const amt = Number(amount);
+    if (!vendorId) return toast.error("Pick a vendor");
+    if (!(amt > 0)) return toast.error("Enter a valid amount");
+    if (file && file.size > 20 * 1024 * 1024) return toast.error("Invoice must be under 20 MB");
+    setBusy(true);
+    try {
+      let invoice: { storage_path: string; file_name: string; content_type: string | null; size_bytes: number } | undefined;
+      if (file) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${requestId}/invoice-${Date.now()}-${safeName}`;
+        const { error: upErr } = await supabase.storage.from("request-files").upload(path, file, {
+          contentType: file.type || undefined,
+          upsert: false,
+        });
+        if (upErr) throw new Error(upErr.message);
+        invoice = { storage_path: path, file_name: file.name, content_type: file.type || null, size_bytes: file.size };
+      }
+      await createFn({ data: {
+        request_id: requestId,
+        vendor_id: vendorId,
+        amount: amt,
+        description: description.trim() || null,
+        scope_of_work: scope.trim() || null,
+        is_recommended: recommended,
+        invoice,
+      } });
+      toast.success("Estimate added");
+      await qc.invalidateQueries({ queryKey: ["request", requestId] });
+      reset();
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not add estimate");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)} className="mt-1">
+        <Upload className="h-3.5 w-3.5 mr-1.5" /> Add estimate
+      </Button>
+    );
+  }
+
+  return (
+    <div className="rounded-md border p-3 space-y-3 bg-muted/20">
+      <div className="text-sm font-medium">New estimate</div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Vendor</Label>
+          <Select value={vendorId} onValueChange={setVendorId}>
+            <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
+            <SelectContent>
+              {(vendors ?? []).map(v => (
+                <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Amount (USD)</Label>
+          <Input type="number" min="0" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Description</Label>
+        <Input value={description} onChange={e => setDescription(e.target.value)} maxLength={500} placeholder="Short summary" />
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Scope of work (optional)</Label>
+        <Textarea value={scope} onChange={e => setScope(e.target.value)} maxLength={2000} rows={3} />
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Invoice / estimate file (optional, ≤20 MB)</Label>
+        <Input type="file" accept="application/pdf,image/*" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+        {file && <div className="text-[11px] text-muted-foreground">{file.name} · {(file.size / 1024).toFixed(0)} KB</div>}
+      </div>
+      <label className="flex items-center gap-2 text-xs">
+        <input type="checkbox" checked={recommended} onChange={e => setRecommended(e.target.checked)} />
+        Mark as recommended estimate
+      </label>
+      <div className="flex gap-2">
+        <Button type="button" size="sm" onClick={submit} disabled={busy}>{busy ? "Saving…" : "Save estimate"}</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
+      </div>
+    </div>
+  );
+}
