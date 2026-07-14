@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 
 const statusStyle: Record<string, string> = {
   submitted: "bg-info/15 text-info-foreground border-info/40",
