@@ -23,6 +23,7 @@ import { Route as AuthenticatedRequestsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedRequestsNewRouteImport } from './routes/_authenticated/requests/new'
 import { Route as AuthenticatedRequestsIdRouteImport } from './routes/_authenticated/requests/$id'
 import { Route as AuthenticatedFinanceUploadRouteImport } from './routes/_authenticated/finance_.upload'
+import { Route as AuthenticatedFinanceRentAdvisorRouteImport } from './routes/_authenticated/finance_.rent-advisor'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -98,6 +99,12 @@ const AuthenticatedFinanceUploadRoute =
     path: '/finance/upload',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFinanceRentAdvisorRoute =
+  AuthenticatedFinanceRentAdvisorRouteImport.update({
+    id: '/finance_/rent-advisor',
+    path: '/finance/rent-advisor',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/properties': typeof AuthenticatedPropertiesRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/finance/rent-advisor': typeof AuthenticatedFinanceRentAdvisorRoute
   '/finance/upload': typeof AuthenticatedFinanceUploadRoute
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
@@ -123,6 +131,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/properties': typeof AuthenticatedPropertiesRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/finance/rent-advisor': typeof AuthenticatedFinanceRentAdvisorRoute
   '/finance/upload': typeof AuthenticatedFinanceUploadRoute
   '/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/requests/new': typeof AuthenticatedRequestsNewRoute
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/properties': typeof AuthenticatedPropertiesRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/finance_/rent-advisor': typeof AuthenticatedFinanceRentAdvisorRoute
   '/_authenticated/finance_/upload': typeof AuthenticatedFinanceUploadRoute
   '/_authenticated/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/_authenticated/requests/new': typeof AuthenticatedRequestsNewRoute
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/properties'
     | '/vendors'
+    | '/finance/rent-advisor'
     | '/finance/upload'
     | '/requests/$id'
     | '/requests/new'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/properties'
     | '/vendors'
+    | '/finance/rent-advisor'
     | '/finance/upload'
     | '/requests/$id'
     | '/requests/new'
@@ -187,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/properties'
     | '/_authenticated/vendors'
+    | '/_authenticated/finance_/rent-advisor'
     | '/_authenticated/finance_/upload'
     | '/_authenticated/requests/$id'
     | '/_authenticated/requests/new'
@@ -299,6 +312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceUploadRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/finance_/rent-advisor': {
+      id: '/_authenticated/finance_/rent-advisor'
+      path: '/finance/rent-advisor'
+      fullPath: '/finance/rent-advisor'
+      preLoaderRoute: typeof AuthenticatedFinanceRentAdvisorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -328,6 +348,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
+  AuthenticatedFinanceRentAdvisorRoute: typeof AuthenticatedFinanceRentAdvisorRoute
   AuthenticatedFinanceUploadRoute: typeof AuthenticatedFinanceUploadRoute
 }
 
@@ -339,6 +360,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPropertiesRoute: AuthenticatedPropertiesRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
+  AuthenticatedFinanceRentAdvisorRoute: AuthenticatedFinanceRentAdvisorRoute,
   AuthenticatedFinanceUploadRoute: AuthenticatedFinanceUploadRoute,
 }
 

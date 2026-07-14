@@ -91,7 +91,7 @@ function RentAdvisor() {
       </div>
       <PageHeader
         title="Rent Adjustment Advisor"
-        subtitle="Toggle the factors driving cost or performance pressure. We suggest a rent adjustment based on their combined weight."
+        description="Toggle the factors driving cost or performance pressure. We suggest a rent adjustment based on their combined weight."
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
