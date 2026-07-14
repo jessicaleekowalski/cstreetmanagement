@@ -50,7 +50,7 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload): 
       };
       try {
         const req = await buildPushPayload(message, subscription, vapid);
-        const res = await fetch(s.endpoint, req);
+        const res = await fetch(s.endpoint, req as unknown as RequestInit);
         if (res.status === 404 || res.status === 410) {
           expired.push(s.id);
         } else if (!res.ok) {
