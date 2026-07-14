@@ -22,7 +22,7 @@ import { Route as AuthenticatedRequestsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedRequestsIndexRouteImport } from './routes/_authenticated/requests/index'
 import { Route as AuthenticatedRequestsNewRouteImport } from './routes/_authenticated/requests/new'
 import { Route as AuthenticatedRequestsIdRouteImport } from './routes/_authenticated/requests/$id'
-import { Route as AuthenticatedFinanceUploadRouteImport } from './routes/_authenticated/finance.upload'
+import { Route as AuthenticatedFinanceUploadRouteImport } from './routes/_authenticated/finance_.upload'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -94,9 +94,9 @@ const AuthenticatedRequestsIdRoute = AuthenticatedRequestsIdRouteImport.update({
 } as any)
 const AuthenticatedFinanceUploadRoute =
   AuthenticatedFinanceUploadRouteImport.update({
-    id: '/upload',
-    path: '/upload',
-    getParentRoute: () => AuthenticatedFinanceRoute,
+    id: '/finance_/upload',
+    path: '/finance/upload',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -104,7 +104,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/requests': typeof AuthenticatedRequestsRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/finance': typeof AuthenticatedFinanceRouteWithChildren
+  '/finance': typeof AuthenticatedFinanceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/properties': typeof AuthenticatedPropertiesRoute
@@ -118,7 +118,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/finance': typeof AuthenticatedFinanceRouteWithChildren
+  '/finance': typeof AuthenticatedFinanceRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/properties': typeof AuthenticatedPropertiesRoute
@@ -135,12 +135,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/finance': typeof AuthenticatedFinanceRouteWithChildren
+  '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/properties': typeof AuthenticatedPropertiesRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
-  '/_authenticated/finance/upload': typeof AuthenticatedFinanceUploadRoute
+  '/_authenticated/finance_/upload': typeof AuthenticatedFinanceUploadRoute
   '/_authenticated/requests/$id': typeof AuthenticatedRequestsIdRoute
   '/_authenticated/requests/new': typeof AuthenticatedRequestsNewRoute
   '/_authenticated/requests/': typeof AuthenticatedRequestsIndexRoute
@@ -187,7 +187,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/properties'
     | '/_authenticated/vendors'
-    | '/_authenticated/finance/upload'
+    | '/_authenticated/finance_/upload'
     | '/_authenticated/requests/$id'
     | '/_authenticated/requests/new'
     | '/_authenticated/requests/'
@@ -292,12 +292,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsIdRouteImport
       parentRoute: typeof AuthenticatedRequestsRouteRoute
     }
-    '/_authenticated/finance/upload': {
-      id: '/_authenticated/finance/upload'
-      path: '/upload'
+    '/_authenticated/finance_/upload': {
+      id: '/_authenticated/finance_/upload'
+      path: '/finance/upload'
       fullPath: '/finance/upload'
       preLoaderRoute: typeof AuthenticatedFinanceUploadRouteImport
-      parentRoute: typeof AuthenticatedFinanceRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
@@ -320,35 +320,26 @@ const AuthenticatedRequestsRouteRouteWithChildren =
     AuthenticatedRequestsRouteRouteChildren,
   )
 
-interface AuthenticatedFinanceRouteChildren {
-  AuthenticatedFinanceUploadRoute: typeof AuthenticatedFinanceUploadRoute
-}
-
-const AuthenticatedFinanceRouteChildren: AuthenticatedFinanceRouteChildren = {
-  AuthenticatedFinanceUploadRoute: AuthenticatedFinanceUploadRoute,
-}
-
-const AuthenticatedFinanceRouteWithChildren =
-  AuthenticatedFinanceRoute._addFileChildren(AuthenticatedFinanceRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedRequestsRouteRoute: typeof AuthenticatedRequestsRouteRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRouteWithChildren
+  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
+  AuthenticatedFinanceUploadRoute: typeof AuthenticatedFinanceUploadRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRequestsRouteRoute: AuthenticatedRequestsRouteRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFinanceRoute: AuthenticatedFinanceRouteWithChildren,
+  AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPropertiesRoute: AuthenticatedPropertiesRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
+  AuthenticatedFinanceUploadRoute: AuthenticatedFinanceUploadRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

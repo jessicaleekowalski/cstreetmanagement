@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Upload, Trash2 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/finance/upload")({
+export const Route = createFileRoute("/_authenticated/finance_/upload")({
   head: () => ({ meta: [{ title: "Upload financial data — C Street" }] }),
   component: UploadPage,
 });
