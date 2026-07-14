@@ -80,6 +80,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Commercial property maintenance operations: tenant requests, owner approvals, vendor coordination, and repair history." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mxVOsTY6qwZY6z34s6OSMO5nOzv1/social-images/social-1784060066328-8DC9E715-85B4-4337-AF00-654145956E6F.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mxVOsTY6qwZY6z34s6OSMO5nOzv1/social-images/social-1784060066328-8DC9E715-85B4-4337-AF00-654145956E6F.webp" },
+      { name: "theme-color", content: "#0b1e34" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "C-Street" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
