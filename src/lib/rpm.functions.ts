@@ -674,23 +674,19 @@ export const clearFinancialData = createServerFn({ method: "POST" })
   }).parse(raw))
   .handler(async ({ data, context }) => {
     const s = context.supabase;
-    const del = (t:
-      | ReturnType<typeof s.from<"property_financials">>
-      | ReturnType<typeof s.from<"property_budgets">>
-      | ReturnType<typeof s.from<"gl_transactions">>
-      | ReturnType<typeof s.from<"property_valuations">>) => {
-      let q = t.delete();
+    const run = async (table: "property_financials" | "property_budgets" | "gl_transactions" | "property_valuations") => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = (s.from as any)(table).delete();
       if (data.property_id) q = q.eq("property_id", data.property_id);
       else q = q.not("id", "is", null);
-      return q;
+      return await q;
     };
-    const res = data.kind === "financials" ? await del(s.from("property_financials"))
-      : data.kind === "budgets" ? await del(s.from("property_budgets"))
-      : data.kind === "transactions" ? await del(s.from("gl_transactions"))
-      : await del(s.from("property_valuations"));
+    const map = { financials: "property_financials", budgets: "property_budgets", transactions: "gl_transactions", valuations: "property_valuations" } as const;
+    const res = await run(map[data.kind]);
     if (res.error) throw new Error(res.error.message);
     return { ok: true };
   });
+
 
 
 
