@@ -141,12 +141,52 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden h-14 border-b flex items-center justify-between px-4 bg-card">
-          <div className="flex items-center gap-2">
-            <img src={logoAsset.url} alt="C Street" className="h-8 w-8 rounded object-cover" />
-            <span className="font-semibold text-sm tracking-wide">C Street</span>
+        <header className="md:hidden border-b bg-card">
+          <div className="h-14 flex items-center justify-between px-4">
+            <div className="flex items-center gap-2">
+              <img src={logoAsset.url} alt="C Street" className="h-8 w-8 rounded object-cover" />
+              <span className="font-semibold text-sm tracking-wide">C Street</span>
+            </div>
+            <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
           </div>
-          <Button size="sm" variant="ghost" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+          <div className="px-3 pb-2 space-y-1.5">
+            <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Demo role — click to switch</div>
+            <div className="grid grid-cols-2 gap-1">
+              {demoRoles.map(r => {
+                const active = current === r.role;
+                return (
+                  <button
+                    key={r.role}
+                    onClick={() => !active && switchRole.mutate(r.role)}
+                    disabled={switchRole.isPending}
+                    className={cn(
+                      "rounded-md px-2 py-1.5 text-[11px] font-medium text-left transition-colors disabled:opacity-60 border",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background hover:bg-muted border-border"
+                    )}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <nav className="flex gap-1 overflow-x-auto px-3 pb-2">
+            {nav.map(item => {
+              const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
+              const Icon = item.icon;
+              return (
+                <Link key={item.to} to={item.to} className={cn(
+                  "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs whitespace-nowrap transition-colors",
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                )}>
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </header>
         <main className="flex-1 min-w-0">
           {needsOnboarding ? (
