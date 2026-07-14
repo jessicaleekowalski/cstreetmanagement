@@ -224,8 +224,37 @@ export const decideApproval = createServerFn({ method: "POST" })
         .update({ status: newStatus })
         .eq("id", appr.request_id);
     }
+
+    // Notify the request submitter + assigned managers of the status change.
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: req } = await supabaseAdmin
+        .from("maintenance_requests")
+        .select("submitted_by, request_number, title, property_id")
+        .eq("id", appr.request_id)
+        .maybeSingle();
+      if (req) {
+        const { getManagerUserIds, sendPushToUsers } = await import("@/lib/push.server");
+        const managerIds = await getManagerUserIds(req.property_id);
+        const recipients = [req.submitted_by, ...managerIds].filter(Boolean) as string[];
+        const label =
+          data.decision === "approved" ? "approved"
+          : data.decision === "declined" ? "declined"
+          : data.decision === "additional_estimate_requested" ? "needs another estimate"
+          : "has an owner question";
+        await sendPushToUsers(recipients, {
+          title: `Request #${req.request_number} ${label}`,
+          body: req.title,
+          url: `/requests/${appr.request_id}`,
+          tag: `request-${appr.request_id}`,
+        });
+      }
+    } catch (e) {
+      console.warn("[push] decideApproval notify failed", e instanceof Error ? e.message : e);
+    }
     return { ok: true };
   });
+
 
 // -------- Data for the tenant request form --------
 export const getTenantContext = createServerFn({ method: "GET" })
