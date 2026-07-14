@@ -1,13 +1,14 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { getMe } from "@/lib/rpm.functions";
-import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, ShieldCheck, LogOut, PlusCircle, History } from "lucide-react";
+import { getMe, setDemoRole } from "@/lib/rpm.functions";
+import { LayoutDashboard, Wrench, Building, Users, Bell, ClipboardList, LogOut, PlusCircle, History } from "lucide-react";
 import logoAsset from "@/assets/c-street-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 
@@ -40,20 +41,40 @@ function navForRole(roles: string[]): NavItem[] {
   return [{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }];
 }
 
+const demoRoles = [
+  { role: "property_manager" as const, label: "Property Manager" },
+  { role: "owner" as const, label: "Property Owner" },
+  { role: "tenant" as const, label: "Commercial Tenant" },
+  { role: "admin" as const, label: "Admin" },
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const getMeFn = useServerFn(getMe);
+  const setRoleFn = useServerFn(setDemoRole);
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => getMeFn() });
 
   const pathname = useRouterState({ select: s => s.location.pathname });
   const roles = me?.roles ?? [];
   const nav = navForRole(roles);
+  const current = roles[0];
   const roleLabel = roles.includes("admin") ? "Admin"
     : roles.includes("property_manager") ? "Property Manager"
     : roles.includes("owner") ? "Property Owner"
     : roles.includes("tenant") ? "Commercial Tenant"
     : "No role yet";
+
+  const switchRole = useMutation({
+    mutationFn: (role: "admin" | "property_manager" | "owner" | "tenant") =>
+      setRoleFn({ data: { role } }),
+    onSuccess: async (_d, role) => {
+      await qc.invalidateQueries();
+      toast.success(`Switched to ${demoRoles.find(r => r.role === role)?.label}`);
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   async function signOut() {
     await qc.cancelQueries();
@@ -90,11 +111,29 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3 space-y-2">
-          <Link to="/onboarding" className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground">
-            <ShieldCheck className="h-3.5 w-3.5" /> Switch demo role
-          </Link>
-          <div className="text-xs text-sidebar-foreground/60 truncate">{me?.email}</div>
-          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50">{roleLabel}</div>
+          <div className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/50 px-1">Demo role</div>
+          <div className="grid grid-cols-2 gap-1">
+            {demoRoles.map(r => {
+              const active = current === r.role;
+              return (
+                <button
+                  key={r.role}
+                  onClick={() => !active && switchRole.mutate(r.role)}
+                  disabled={switchRole.isPending}
+                  className={cn(
+                    "rounded-md px-2 py-1.5 text-[11px] font-medium text-left transition-colors disabled:opacity-60",
+                    active
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-sidebar-ring"
+                      : "bg-sidebar-accent/30 hover:bg-sidebar-accent/60 text-sidebar-foreground/80"
+                  )}
+                >
+                  {r.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="pt-1 text-xs text-sidebar-foreground/60 truncate">{me?.email}</div>
+          <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/50">Active: {roleLabel}</div>
           <Button size="sm" variant="ghost" onClick={signOut} className="w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
             <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
           </Button>
