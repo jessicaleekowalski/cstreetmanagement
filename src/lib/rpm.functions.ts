@@ -383,8 +383,34 @@ export const createEstimate = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+
+    // Notify owner(s) that a new estimate/invoice is ready for approval.
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: req } = await supabaseAdmin
+        .from("maintenance_requests")
+        .select("property_id, request_number, title")
+        .eq("id", data.request_id)
+        .maybeSingle();
+      if (req) {
+        const { getOwnerUserIds, sendPushToUsers } = await import("@/lib/push.server");
+        const ownerIds = await getOwnerUserIds(req.property_id);
+        const isInvoice = !!data.invoice;
+        await sendPushToUsers(ownerIds, {
+          title: isInvoice
+            ? `New invoice on request #${req.request_number}`
+            : `Estimate ready for #${req.request_number}`,
+          body: `${req.title} — $${data.amount.toLocaleString()}`,
+          url: `/requests/${data.request_id}`,
+          tag: `request-${data.request_id}`,
+        });
+      }
+    } catch (e) {
+      console.warn("[push] createEstimate notify failed", e instanceof Error ? e.message : e);
+    }
     return { id: est.id, attachment_id };
   });
+
 
 // -------- Signed URL for viewing an uploaded invoice/attachment --------
 export const getAttachmentUrl = createServerFn({ method: "POST" })
