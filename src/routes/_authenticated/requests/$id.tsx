@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/requests/$id")({
-  head: () => ({ meta: [{ title: "Request detail — C Street Management Group" }] }),
+  head: () => ({ meta: [{ title: "Request detail — C-Street Management Group" }] }),
   component: RequestDetailPage,
 });
 
