@@ -28,9 +28,25 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/onboarding", replace: true });
+    let active = true;
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!active || !data.session) return;
+
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (!active) return;
+
+      if (error || !userData.user) {
+        await supabase.auth.signOut();
+        return;
+      }
+
+      navigate({ to: "/onboarding", replace: true });
     });
+
+    return () => {
+      active = false;
+    };
   }, [navigate]);
 
   async function handleSignIn(e: React.FormEvent) {
