@@ -5,9 +5,8 @@ const config: CapacitorConfig = {
   appName: 'C-Street',
   webDir: 'dist',
   server: {
-    // For live development against the Lovable preview, point this at your preview URL.
-    // For a production build, comment `url` out so the app loads the bundled webDir.
-    url: 'https://id-preview--dd9b4d69-6c5a-4eea-aa11-928c89b0f5dc.lovable.app',
+    // Points at the public published URL so the native app loads without a Lovable login.
+    url: 'https://cstreetmanagement.lovable.app',
     cleartext: true,
   },
   ios: {
