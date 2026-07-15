@@ -23,8 +23,6 @@ function NotificationsPage() {
   const { status } = usePushNotifications();
   const [sending, setSending] = useState(false);
 
-  const canTest = status.supported && status.subscribed && status.permission === "granted";
-
   const handleTest = async () => {
     setSending(true);
     try {
@@ -50,16 +48,13 @@ function NotificationsPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <PushToggle />
-          {canTest && (
-            <Button size="sm" variant="outline" onClick={handleTest} disabled={sending}>
-              {sending ? "Sending…" : "Send test notification"}
-            </Button>
-          )}
-          {!status.supported && (
-            <p className="text-xs text-muted-foreground">
-              {status.reason} Push notifications require HTTPS and don't run inside the Lovable editor preview — open your published site (or install it to your home screen on iPhone) to enable them.
-            </p>
-          )}
+          <Button size="sm" variant="outline" onClick={handleTest} disabled={sending}>
+            {sending ? "Sending…" : "Send test notification"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Status: supported={String(status.supported)} · permission={status.permission} · subscribed={String(status.subscribed)}
+            {status.reason ? ` · ${status.reason}` : ""}
+          </p>
         </CardContent>
       </Card>
 
