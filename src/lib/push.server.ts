@@ -7,6 +7,13 @@ export type PushPayload = {
   tag?: string;
 };
 
+export type PushSendResult = {
+  subscriptions: number;
+  sent: number;
+  failed: number;
+  expired: number;
+};
+
 function getVapid(): VapidKeys & { subject: string } {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
@@ -19,8 +26,8 @@ function getVapid(): VapidKeys & { subject: string } {
  * Send a push notification to every subscription owned by the given user ids.
  * Silently prunes subscriptions that return 404/410 (endpoint expired).
  */
-export async function sendPushToUsers(userIds: string[], payload: PushPayload): Promise<void> {
-  if (userIds.length === 0) return;
+export async function sendPushToUsers(userIds: string[], payload: PushPayload): Promise<PushSendResult> {
+  if (userIds.length === 0) return { subscriptions: 0, sent: 0, failed: 0, expired: 0 };
   const uniqueUserIds = Array.from(new Set(userIds));
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -30,9 +37,9 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload): 
     .in("user_id", uniqueUserIds);
   if (error) {
     console.error("[push] failed to load subscriptions", error.message);
-    return;
+    return { subscriptions: 0, sent: 0, failed: 1, expired: 0 };
   }
-  if (!subs || subs.length === 0) return;
+  if (!subs || subs.length === 0) return { subscriptions: 0, sent: 0, failed: 0, expired: 0 };
 
   const vapid = getVapid();
   const message: PushMessage = {
@@ -41,6 +48,8 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload): 
   };
 
   const expired: string[] = [];
+  let sent = 0;
+  let failed = 0;
   await Promise.all(
     subs.map(async (s) => {
       const subscription: PushSubscription = {
@@ -54,10 +63,14 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload): 
         if (res.status === 404 || res.status === 410) {
           expired.push(s.id);
         } else if (!res.ok) {
+          failed += 1;
           const text = await res.text().catch(() => "");
           console.warn(`[push] delivery ${res.status}: ${text.slice(0, 200)}`);
+        } else {
+          sent += 1;
         }
       } catch (err) {
+        failed += 1;
         console.warn("[push] send failed", err instanceof Error ? err.message : err);
       }
     }),
@@ -66,6 +79,8 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload): 
   if (expired.length > 0) {
     await supabaseAdmin.from("push_subscriptions").delete().in("id", expired);
   }
+
+  return { subscriptions: subs.length, sent, failed, expired: expired.length };
 }
 
 /** Get user_ids of property managers assigned to a property. */

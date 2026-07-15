@@ -26,8 +26,10 @@ function NotificationsPage() {
   const handleTest = async () => {
     setSending(true);
     try {
-      await testFn();
-      toast.success("Test notification sent", { description: "Check your device — it may take a few seconds." });
+      const result = await testFn();
+      toast.success("Test notification sent", {
+        description: `Sent to ${result.sent} of ${result.subscriptions} subscribed device${result.subscriptions === 1 ? "" : "s"}.`,
+      });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to send test notification");
     } finally {

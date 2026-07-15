@@ -59,11 +59,17 @@ export const sendTestPush = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { sendPushToUsers } = await import("@/lib/push.server");
-    await sendPushToUsers([context.userId], {
+    const result = await sendPushToUsers([context.userId], {
       title: "Test notification 🔔",
       body: "If you see this, push notifications are working on this device.",
       url: "/notifications",
       tag: "test-push",
     });
-    return { ok: true };
+    if (result.subscriptions === 0) {
+      throw new Error("No subscribed devices found for this signed-in account. Open the installed phone app, sign in with the same account, and tap Enable notifications first.");
+    }
+    if (result.sent === 0) {
+      throw new Error("The notification service rejected the saved phone subscription. Turn notifications off and back on, then send another test.");
+    }
+    return { ok: true, ...result };
   });
