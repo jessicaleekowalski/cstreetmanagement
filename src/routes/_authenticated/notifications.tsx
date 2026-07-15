@@ -52,8 +52,9 @@ function NotificationsPage() {
             {sending ? "Sending…" : "Send test notification"}
           </Button>
           <p className="text-xs text-muted-foreground">
-            Status: supported={String(status.supported)} · permission={status.permission} · subscribed={String(status.subscribed)}
-            {status.reason ? ` · ${status.reason}` : ""}
+            Status: {status.supported
+              ? `supported · permission=${status.permission} · subscribed=${String(status.subscribed)}`
+              : `unsupported — ${status.reason}`}
           </p>
         </CardContent>
       </Card>
