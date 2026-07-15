@@ -9,8 +9,8 @@
   "theme_color": "#0b1e34",
   "orientation": "portrait",
   "icons": [
-    { "src": "/c-street-logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/c-street-logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/c-street-logo.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
+    { "src": "/app-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "maskable" }
   ]
 }
