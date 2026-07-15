@@ -53,3 +53,17 @@ export const getMyPushStatus = createServerFn({ method: "GET" })
       .eq("user_id", context.userId);
     return { count: count ?? 0 };
   });
+
+/** Sends a test push notification to the current user's own devices. */
+export const sendTestPush = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { sendPushToUsers } = await import("@/lib/push.server");
+    await sendPushToUsers([context.userId], {
+      title: "Test notification 🔔",
+      body: "If you see this, push notifications are working on this device.",
+      url: "/notifications",
+      tag: "test-push",
+    });
+    return { ok: true };
+  });
