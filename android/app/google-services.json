@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "12710693049",
+    "project_id": "c-street-management-48873",
+    "storage_bucket": "c-street-management-48873.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:12710693049:android:6aea18c00cf183fe343368",
+        "android_client_info": {
+          "package_name": "app.lovable.cstreet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjiKhf4MAjombvCyMgA6pmJj9d9zfpDg4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
